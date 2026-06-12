@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AP World History Study App</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --bg3: #eeede9;
+    --text: #1a1a1a;
+    --text2: #555;
+    --text3: #999;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.2);
+    --purple: #7F77DD;
+    --purple-light: #EEEDFE;
+    --purple-mid: #CECBF6;
+    --purple-dark: #3C3489;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --bg2: #242424;
+      --bg3: #2e2e2e;
+      --text: #f0f0f0;
+      --text2: #aaa;
+      --text3: #666;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.2);
+      --purple-light: #26215C;
+      --purple-mid: #3C3489;
+      --purple-dark: #CECBF6;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+  .app-shell { max-width: 700px; margin: 0 auto; padding: 0 0 80px; }
+  header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 1.25rem 1.5rem; position: sticky; top: 0; z-index: 10; }
+  header h1 { font-size: 18px; font-weight: 600; color: var(--text); }
+  header p { font-size: 13px; color: var(--text2); margin-top: 2px; }
+  .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg); border-top: 0.5px solid var(--border); display: flex; z-index: 10; }
+  .tab { flex: 1; padding: 10px 4px 14px; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; color: var(--text3); font-size: 11px; transition: color 0.15s; }
+  .tab i { font-size: 22px; }
+  .tab.active { color: var(--purple); }
+  .screen { display: none; padding: 1.25rem 1rem; }
+  .screen.active { display: block; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 12px; }
+  .unit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+  .unit-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem; cursor: pointer; transition: all 0.15s; }
+  .unit-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+  .unit-dot { width: 24px; height: 4px; border-radius: 2px; margin-bottom: 10px; }
+  .unit-num { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .unit-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .unit-dates { font-size: 12px; color: var(--text2); }
+  .back-btn { background: none; border: none; color: var(--text2); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; padding: 0; margin-bottom: 1rem; }
+  .back-btn:hover { color: var(--text); }
+  .pill { display: inline-block; font-size: 12px; padding: 5px 12px; border-radius: 999px; background: var(--purple-light); color: var(--purple-dark); border: none; cursor: pointer; margin: 4px; }
+  .pill:hover { background: var(--purple-mid); }
+  .btn { padding: 11px 20px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; width: 100%; margin-bottom: 10px; text-align: center; }
+  .btn:hover { background: var(--bg2); }
+  .btn-purple { background: var(--purple-light); color: var(--purple-dark); border-color: var(--purple-mid); }
+  .btn-purple:hover { background: var(--purple-mid); }
+  .progress-bar { height: 4px; background: var(--bg3); border-radius: 2px; margin-bottom: 6px; }
+  .progress-fill { height: 4px; background: var(--purple); border-radius: 2px; transition: width 0.3s; }
+  .fc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .fc-meta p { font-size: 13px; color: var(--text2); }
+  select { font-size: 13px; padding: 6px 10px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); }
+  .hint { font-size: 12px; color: var(--text3); text-align: right; margin-bottom: 1rem; }
+  .card-area { perspective: 800px; margin: 0.5rem 0 1rem; }
+  .flashcard { width: 100%; min-height: 200px; position: relative; transform-style: preserve-3d; transition: transform 0.5s; cursor: pointer; }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .card-face { position: absolute; width: 100%; min-height: 200px; backface-visibility: hidden; -webkit-backface-visibility: hidden; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.75rem 1.5rem; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; }
+  .card-back-face { transform: rotateY(180deg); background: var(--purple-light); border-color: var(--purple-mid); }
+  .card-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+  .card-term { font-size: 20px; font-weight: 600; text-align: center; }
+  .card-def { font-size: 15px; text-align: center; color: var(--purple-dark); line-height: 1.6; }
+  .card-nav { display: flex; gap: 10px; justify-content: center; }
+  .card-nav button { padding: 10px 24px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .card-nav button:hover { background: var(--bg2); }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .quiz-top p { font-size: 13px; color: var(--text2); }
+  .quiz-score { font-weight: 600; color: var(--purple); }
+  .quiz-q { font-size: 16px; font-weight: 500; margin-bottom: 1.25rem; line-height: 1.5; }
+  .quiz-opts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem; }
+  .quiz-opt { padding: 13px 16px; border-radius: var(--radius-sm); border: 0.5px solid var(--border); background: var(--bg); font-size: 14px; cursor: pointer; text-align: left; line-height: 1.4; transition: all 0.15s; }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--purple); background: var(--purple-light); }
+  .quiz-opt.correct { background: #EAF3DE; border-color: #639922; color: #27500A; }
+  .quiz-opt.wrong { background: #FCEBEB; border-color: #A32D2D; color: #501313; }
+  .feedback { padding: 12px 16px; border-radius: var(--radius-sm); font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+  .feedback.correct { background: #EAF3DE; color: #27500A; }
+  .feedback.wrong { background: #FCEBEB; color: #501313; }
+  .score-card { text-align: center; padding: 2rem 1rem; }
+  .score-num { font-size: 52px; font-weight: 700; color: var(--purple); }
+  .score-sub { font-size: 14px; color: var(--text2); margin-top: 6px; }
+  .chat-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; min-height: 160px; max-height: 320px; overflow-y: auto; }
+  .msg { padding: 11px 15px; border-radius: var(--radius); font-size: 14px; line-height: 1.6; max-width: 88%; }
+  .msg.user { background: var(--purple-light); color: var(--purple-dark); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .msg.ai { background: var(--bg2); color: var(--text); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .suggested { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .sq { font-size: 12px; padding: 6px 12px; border-radius: 999px; border: 0.5px solid var(--purple-mid); background: var(--purple-light); color: var(--purple-dark); cursor: pointer; }
+  .sq:hover { background: var(--purple-mid); }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input { flex: 1; padding: 11px 14px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 14px; }
+  .input-row input:focus { outline: none; border-color: var(--purple); }
+  .send-btn { padding: 11px 18px; border-radius: var(--radius-sm); border: none; background: var(--purple); color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; }
+  .send-btn:hover { background: #534AB7; }
+  .note { font-size: 12px; color: var(--text3); text-align: center; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header>
+    <h1>AP World History</h1>
+    <p>Study smarter across all 9 units</p>
+  </header>
+
+  <!-- UNITS SCREEN -->
+  <div id="screen-units" class="screen active">
+    <div id="unit-list">
+      <div class="unit-grid" id="unit-grid"></div>
+    </div>
+    <div id="unit-detail" style="display:none;"></div>
+  </div>
+
+  <!-- FLASHCARDS SCREEN -->
+  <div id="screen-flashcards" class="screen">
+    <div class="fc-meta">
+      <p id="fc-counter">Card 1 of 14</p>
+      <select id="fc-filter" onchange="filterCards()"></select>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="fc-prog" style="width:7%"></div></div>
+    <p class="hint">Tap card to reveal answer</p>
+    <div class="card-area">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="card-face">
+          <p class="card-label">Term</p>
+          <p class="card-term" id="fc-front">Loading...</p>
+        </div>
+        <div class="card-face card-back-face">
+          <p class="card-label">Definition</p>
+          <p class="card-def" id="fc-back">Loading...</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-nav">
+      <button onclick="prevCard()"><i class="ti ti-arrow-left"></i> Prev</button>
+      <button onclick="nextCard()">Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="screen">
+    <div id="quiz-active">
+      <div class="quiz-top">
+        <p id="quiz-counter">Question 1 of 5</p>
+        <p class="quiz-score" id="quiz-score-live">Score: 0</p>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="quiz-prog" style="width:20%"></div></div>
+      <div class="card" style="margin-top:1rem;">
+        <p class="quiz-q" id="quiz-q"></p>
+        <div class="quiz-opts" id="quiz-opts"></div>
+        <div id="quiz-feedback" class="feedback" style="display:none;"></div>
+        <button id="quiz-next" class="btn" onclick="nextQuestion()" style="display:none;">Next question →</button>
+      </div>
+    </div>
+    <div id="quiz-done" style="display:none;">
+      <div class="card score-card">
+        <p style="font-size:14px;color:var(--text2);margin-bottom:8px;">Quiz complete!</p>
+        <p class="score-num" id="final-score">0/5</p>
+        <p class="score-sub">correct answers</p>
+        <button class="btn btn-purple" onclick="restartQuiz()" style="margin-top:1.5rem;width:auto;padding:10px 28px;">Try again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TUTOR SCREEN -->
+  <div id="screen-tutor" class="screen">
+    <div class="card">
+      <p style="font-size:16px;font-weight:500;margin-bottom:4px;">AI Tutor</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem;">Ask anything about AP World History</p>
+      <div class="suggested" id="suggested">
+        <button class="sq" onclick="askQ(this)">What caused the fall of Rome?</button>
+        <button class="sq" onclick="askQ(this)">Explain the Silk Road</button>
+        <button class="sq" onclick="askQ(this)">What is the significance of 1450?</button>
+        <button class="sq" onclick="askQ(this)">Compare Islam and Christianity spread</button>
+        <button class="sq" onclick="askQ(this)">What is the Columbian Exchange?</button>
+      </div>
+      <div class="chat-box" id="chat-box">
+        <div class="msg ai">Hi! I'm your AP World History tutor. Ask me anything — from ancient civilizations to modern globalization. What would you like to learn?</div>
+      </div>
+      <div class="input-row">
+        <input type="text" id="chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter')sendChat()" />
+        <button class="send-btn" onclick="sendChat()"><i class="ti ti-send"></i></button>
+      </div>
+      <p class="note">Powered by Claude AI · Answers tuned for AP exam prep</p>
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab active" onclick="showTab('units',this)"><i class="ti ti-books"></i>Units</button>
+    <button class="tab" onclick="showTab('flashcards',this)"><i class="ti ti-cards"></i>Flashcards</button>
+    <button class="tab" onclick="showTab('quiz',this)"><i class="ti ti-help"></i>Quiz</button>
+    <button class="tab" onclick="showTab('tutor',this)"><i class="ti ti-message-circle"></i>Tutor</button>
+  </nav>
+</div>
+
+<script>
+const UNITS = [
+  {num:1,title:"The Global Tapestry",dates:"1200–1450",color:"#7F77DD",concepts:["Song Dynasty","Abbasid Caliphate","Mali Empire","Delhi Sultanate","Byzantine Empire","Feudalism"]},
+  {num:2,title:"Networks of Exchange",dates:"1200–1450",color:"#1D9E75",concepts:["Silk Roads","Indian Ocean Trade","Trans-Saharan Trade","Mongol Empire","Black Death","Ibn Battuta"]},
+  {num:3,title:"Land-Based Empires",dates:"1450–1750",color:"#D85A30",concepts:["Ottoman Empire","Safavid Empire","Mughal Empire","Ming Dynasty","Aztec Empire","Devshirme"]},
+  {num:4,title:"Transoceanic Interconnections",dates:"1450–1750",color:"#378ADD",concepts:["Columbian Exchange","Atlantic Slave Trade","Spanish Colonization","Joint-stock Companies","Mercantilism","Middle Passage"]},
+  {num:5,title:"Revolutions",dates:"1750–1900",color:"#D4537E",concepts:["French Revolution","Haitian Revolution","Industrialization","Nationalism","Abolitionism","American Revolution"]},
+  {num:6,title:"Consequences of Industrialization",dates:"1750–1900",color:"#BA7517",concepts:["New Imperialism","Social Darwinism","Suez Canal","Meiji Restoration","Scramble for Africa","Sepoy Mutiny"]},
+  {num:7,title:"Global Conflict",dates:"1900–present",color:"#639922",concepts:["WWI","WWII","Treaty of Versailles","League of Nations","Total War","Armenian Genocide"]},
+  {num:8,title:"Cold War and Decolonization",dates:"1900–present",color:"#534AB7",concepts:["Cold War","NATO","Non-Aligned Movement","Decolonization","Korean War","Cuban Missile Crisis"]},
+  {num:9,title:"Globalization",dates:"1900–present",color:"#A32D2D",concepts:["WTO","Climate Change","Digital Revolution","Migration","Global Economy","Asian Tigers"]}
+];
+
+const CARDS = [
+  {unit:1,term:"Song Dynasty",def:"Chinese dynasty (960–1279) known for economic prosperity, printing, gunpowder, and the compass. Population doubled due to Champa rice."},
+  {unit:1,term:"Abbasid Caliphate",def:"Islamic empire centered in Baghdad (750–1258); a major hub of trade, mathematics, medicine, and learning — the Islamic Golden Age."},
+  {unit:1,term:"Mali Empire",def:"West African empire wealthy from trans-Saharan gold and salt trade. Mansa Musa's pilgrimage to Mecca in 1324 showcased its enormous wealth."},
+  {unit:2,term:"Silk Roads",def:"Network of overland and maritime trade routes connecting East Asia, Central Asia, South Asia, East Africa, and Europe. Spread goods, religions, and disease."},
+  {unit:2,term:"Black Death",def:"Bubonic plague that killed ~1/3 of Europe's population in the 1340s–50s. Spread via fleas on rats along Mongol trade routes."},
+  {unit:2,term:"Mongol Empire",def:"Largest contiguous land empire in history. Created the Pax Mongolica — a period of relative peace that facilitated trade across Eurasia."},
+  {unit:3,term:"Ottoman Empire",def:"Powerful Muslim empire (1299–1922) centered in Anatolia. Conquered Constantinople in 1453, renaming it Istanbul and controlling key trade routes."},
+  {unit:3,term:"Mughal Empire",def:"Muslim dynasty ruling most of South Asia (1526–1857). Known for the Taj Mahal, relative religious tolerance under Akbar, and eventual British takeover."},
+  {unit:4,term:"Columbian Exchange",def:"Transfer of plants, animals, diseases, and cultures between the Americas and the Old World after 1492. Diseases killed up to 90% of Indigenous populations."},
+  {unit:4,term:"Mercantilism",def:"Economic theory that colonies exist to enrich the mother country through trade surpluses and resource extraction. Drove European colonization."},
+  {unit:5,term:"Haitian Revolution",def:"Slave revolt (1791–1804) that created the first Black republic and the only successful slave revolution in history. Challenged colonialism worldwide."},
+  {unit:6,term:"Social Darwinism",def:"Misapplication of Darwin's evolution to justify European imperialism and racial hierarchies. Used to claim Europeans were 'naturally superior.'"},
+  {unit:7,term:"Total War",def:"Warfare involving an entire nation's resources — military, economic, and civilian. Seen in WWI and WWII with rationing, propaganda, and mass mobilization."},
+  {unit:8,term:"Non-Aligned Movement",def:"Group of states (led by India, Egypt, Yugoslavia) that chose not to align with NATO or the Soviet bloc during the Cold War."},
+  {unit:9,term:"WTO",def:"World Trade Organization — international body established in 1995 governing rules of trade between nations. Promoted globalization and free trade."}
+];
+
+const QUESTIONS = [
+  {q:"Which dynasty in China is most associated with the expansion of the civil service exam and economic revolution?",opts:["Han Dynasty","Tang Dynasty","Song Dynasty","Ming Dynasty"],ans:2,exp:"The Song Dynasty expanded the civil service exam system, creating a merit-based bureaucracy, and saw major economic and technological innovations."},
+  {q:"The Columbian Exchange primarily refers to:",opts:["A trade agreement between Spain and Portugal","The transfer of goods, people, and diseases between Old and New Worlds","Columbus's voyage logs and maps","A currency system in colonial America"],ans:1,exp:"The Columbian Exchange was the widespread transfer of plants, animals, culture, human populations, and diseases between the Americas and Afro-Eurasia after 1492."},
+  {q:"Which empire conquered Constantinople in 1453, ending the Byzantine Empire?",opts:["Mongol Empire","Safavid Empire","Ottoman Empire","Mughal Empire"],ans:2,exp:"The Ottoman Empire, under Sultan Mehmed II, conquered Constantinople in 1453 — a turning point that shifted European trade routes and sparked exploration."},
+  {q:"The Black Death spread so rapidly in the 14th century primarily because of:",opts:["Poor European hygiene habits","Expansion of trade networks","Mongol biological warfare","Lack of trained doctors"],ans:1,exp:"The Black Death spread along trade routes — particularly the Silk Roads and Mediterranean sea lanes — reaching new populations quickly via infected rats and fleas."},
+  {q:"The Haitian Revolution (1791–1804) was historically significant because it:",opts:["Created the first constitutional monarchy in the Americas","Ended Spanish rule in South America","Established the first Black republic and the only successful slave revolution","United French Caribbean colonies under one government"],ans:2,exp:"Haiti became the first Black republic and the only successful slave revolution in history, sending shockwaves through slaveholding societies worldwide."}
+];
+
+let fcCards = [...CARDS];
+let fcIdx = 0;
+let qIdx = 0, qScore = 0, qAnswered = false;
+let chatBusy = false;
+
+function showTab(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'flashcards') renderCard();
+  if (name === 'quiz') renderQ();
+}
+
+function renderUnits() {
+  document.getElementById('unit-grid').innerHTML = UNITS.map((u,i) => `
+    <div class="unit-card" onclick="showUnit(${i})">
+      <div class="unit-dot" style="background:${u.color}"></div>
+      <p class="unit-num">Unit ${u.num}</p>
+      <p class="unit-name">${u.title}</p>
+      <p class="unit-dates">${u.dates}</p>
+    </div>`).join('');
+}
+
+function showUnit(idx) {
+  const u = UNITS[idx];
+  document.getElementById('unit-list').style.display = 'none';
+  const d = document.getElementById('unit-detail');
+  d.style.display = 'block';
+  d.innerHTML = `
+    <button class="back-btn" onclick="backUnits()"><i class="ti ti-arrow-left"></i> All units</button>
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="width:6px;height:44px;border-radius:3px;background:${u.color};flex-shrink:0;"></div>
+        <div>
+          <p style="font-size:18px;font-weight:600;">${u.title}</p>
+          <p style="font-size:13px;color:var(--text2);">Unit ${u.num} · ${u.dates}</p>
+        </div>
+      </div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px;">Key concepts — tap to ask the tutor:</p>
+      <div>${u.concepts.map(c=>`<button class="pill" onclick="goTutor('${c}')">${c}</button>`).join('')}</div>
+    </div>
+    <button class="btn btn-purple" onclick="goFlashcardsUnit(${idx})">Study flashcards for Unit ${u.num}</button>
+    <button class="btn" onclick="goTutor('Unit ${u.num}: ${u.title} key themes and exam tips')">Ask AI tutor about this unit ↗</button>`;
+}
+
+function backUnits() {
+  document.getElementById('unit-list').style.display = 'block';
+  document.getElementById('unit-detail').style.display = 'none';
+}
+
+function goFlashcardsUnit(idx) {
+  const u = UNITS[idx];
+  fcCards = CARDS.filter(c => c.unit === u.num);
+  if (!fcCards.length) fcCards = [...CARDS];
+  fcIdx = 0;
+  document.querySelector('.tab:nth-child(2)').click();
+}
+
+function goTutor(topic) {
+  document.querySelector('.tab:nth-child(4)').click();
+  setTimeout(() => { document.getElementById('chat-input').value = 'Tell me about ' + topic + ' in AP World History'; sendChat(); }, 150);
+}
+
+function filterCards() {
+  const v = document.getElementById('fc-filter').value;
+  fcCards = v === 'all' ? [...CARDS] : CARDS.filter(c => c.unit == v);
+  fcIdx = 0; renderCard();
+}
+
+function renderCard() {
+  if (!fcCards.length) return;
+  const c = fcCards[fcIdx];
+  document.getElementById('fc-front').textContent = c.term;
+  document.getElementById('fc-back').textContent = c.def;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fc-counter').textContent = `Card ${fcIdx+1} of ${fcCards.length}`;
+  document.getElementById('fc-prog').style.width = Math.round(((fcIdx+1)/fcCards.length)*100) + '%';
+}
+
+function flipCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+function nextCard() { fcIdx = (fcIdx+1) % fcCards.length; renderCard(); }
+function prevCard() { fcIdx = (fcIdx-1+fcCards.length) % fcCards.length; renderCard(); }
+
+function renderQ() {
+  if (qIdx >= QUESTIONS.length) { showScore(); return; }
+  const q = QUESTIONS[qIdx];
+  qAnswered = false;
+  document.getElementById('quiz-q').textContent = q.q;
+  document.getElementById('quiz-counter').textContent = `Question ${qIdx+1} of ${QUESTIONS.length}`;
+  document.getElementById('quiz-prog').style.width = Math.round(((qIdx+1)/QUESTIONS.length)*100) + '%';
+  document.getElementById('quiz-feedback').style.display = 'none';
+  document.getElementById('quiz-next').style.display = 'none';
+  document.getElementById('quiz-opts').innerHTML = q.opts.map((o,i) =>
+    `<button class="quiz-opt" onclick="answer(${i})">${o}</button>`).join('');
+}
+
+function answer(idx) {
+  if (qAnswered) return;
+  qAnswered = true;
+  const q = QUESTIONS[qIdx];
+  document.querySelectorAll('.quiz-opt').forEach(b => b.disabled = true);
+  document.querySelectorAll('.quiz-opt')[q.ans].classList.add('correct');
+  if (idx !== q.ans) document.querySelectorAll('.quiz-opt')[idx].classList.add('wrong');
+  else qScore++;
+  document.getElementById('quiz-score-live').textContent = `Score: ${qScore}`;
+  const fb = document.getElementById('quiz-feedback');
+  fb.style.display = 'block';
+  fb.className = 'feedback ' + (idx === q.ans ? 'correct' : 'wrong');
+  fb.textContent = (idx === q.ans ? '✓ Correct! ' : '✗ Not quite. ') + q.exp;
+  document.getElementById('quiz-next').style.display = 'block';
+}
+
+function nextQuestion() { qIdx++; renderQ(); }
+function showScore() {
+  document.getElementById('quiz-active').style.display = 'none';
+  document.getElementById('quiz-done').style.display = 'block';
+  document.getElementById('final-score').textContent = `${qScore}/${QUESTIONS.length}`;
+}
+function restartQuiz() {
+  qIdx = 0; qScore = 0;
+  document.getElementById('quiz-active').style.display = 'block';
+  document.getElementById('quiz-done').style.display = 'none';
+  renderQ();
+}
+
+function askQ(btn) {
+  document.getElementById('chat-input').value = btn.textContent;
+  sendChat();
+}
+
+async function sendChat() {
+  if (chatBusy) return;
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  const box = document.getElementById('chat-box');
+  box.innerHTML += `<div class="msg user">${msg}</div>`;
+  const thinking = document.createElement('div');
+  thinking.className = 'msg ai';
+  thinking.textContent = '...';
+  box.appendChild(thinking);
+  box.scrollTop = box.scrollHeight;
+  chatBusy = true;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: "You are a friendly AP World History tutor for high school students. Give clear, concise answers in 2-4 sentences. Use simple language. Focus on helping students understand key concepts, causes, effects, and comparisons relevant to the AP World History exam. When relevant, mention which AP unit the topic falls under (Units 1-9).",
+        messages: [{ role: 'user', content: msg }]
+      })
+    });
+    const data = await res.json();
+    thinking.textContent = data.content?.map(b => b.text || '').join('') || 'Sorry, could not get a response. Try again!';
+  } catch(e) {
+    thinking.textContent = 'Could not connect. Please check your internet connection and try again.';
+  }
+  chatBusy = false;
+  box.scrollTop = box.scrollHeight;
+}
+
+renderUnits();
+const sel = document.getElementById('fc-filter');
+sel.innerHTML = '<option value="all">All units</option>' + UNITS.map(u => `<option value="${u.num}">Unit ${u.num}</option>`).join('');
+renderCard();
+renderQ();
+</script>
+</body>
+</html>
